@@ -2,7 +2,7 @@ const mqtt = require('mqtt');
 const express = require('express');
 const mongoose = require('mongoose');
 const SCD = require('./models/SCD');
-const soil = require('./models/soil');
+const Soil = require('./models/soil');
 
 const bodyParser = require('body-parser');
 
@@ -27,12 +27,13 @@ app.use(bodyParser.urlencoded({
 const client = mqtt.connect("mqtt://broker.hivemq.com:1883");
 
 client.on('connect', () => {
-    client.subscribe('/mushroom/mqtt');
+    client.subscribe('/mushroom/scd');
+    client.subscribe('/mushroom/soil');
     console.log('mqtt connected');
 });
 
 client.on('message', async (topic, message) => {
-    if (topic == '/mushroom/mqtt') {
+    if (topic == '/mushroom/scd') {
         const data = JSON.parse(message);
         console.log(data);
         try {
@@ -40,14 +41,37 @@ client.on('message', async (topic, message) => {
             const { temp } = data;
             const { co2 } = data;
             const { hum } = data;
+            const now = new Date();
+            const time = now.toISOString();
 
             const y = await SCD.updateOne({ 'device': data.device }, {
                 $push: {
                     'sensorData': {
-                        'time':Date.now(),
+                        'time': time,
                         'co2': data.co2,
                         'hum': data.hum,
                         'temp': data.temp
+                    }
+                }
+            })
+        } catch (err) {
+            console.log(err);
+        }
+    }
+    else if (topic == '/mushroom/soil') {
+        const data = JSON.parse(message);
+        console.log(data);
+        try {
+            let device = await Soil.findOne({ "device": data.device }).exec();
+            const { soil } = data;
+            const now = new Date();
+            const time = now.toISOString();
+
+            const y = await Soil.updateOne({ 'device': data.device }, {
+                $push: {
+                    'sensorData': {
+                        'time': time,
+                        'soil': data.soil
                     }
                 }
             })
