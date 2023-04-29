@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Highcharts with API Data</title>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="../resources/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+  </head>
+  <style>
+    .menuic {
+            width: 20px;
+            margin-top: 4px;
+            height: 4px;
+            background-color: #fff;
+        }
+
+        .left-nav {
+            position: absolute;
+            display: none;
+            top: 105px;
+            border-top: 1px solid #fff;
+            left: 0;
+            height: 85%;
+            width: 200px;
+            background-color: #333;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .left-nav ul {
+            list-style: none;
+            margin: 20px;
+            padding: 10px;
+            text-align: center;
+
+        }
+
+        .left-nav li {
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+
+        .left-nav a {
+            color: #fff;
+            text-decoration: none;
+            font-size: 18px;
+        }
+  </style>
+
+  <body>
+    <header>
+      <h1>Welcome to our Smart Building</h1>
+      <div class="menu-icon">
+          <div class="menuic"></div>
+          <div class="menuic"></div>
+          <div class="menuic"></div>
+      </div>
+      <nav class="left-nav" style="display: none; z-index: 1;">
+          <ul>
+              <li><a href="../welcome">Smart Building</a></li><hr>
+              <li><a href="../web/add">Add Devices</a></li><hr>
+              <li><a href="../web/devices-list">Devices</a></li><hr>
+              <li><a href="../web/sdata">Sensor Data</a></li><hr>
+              <li><a href="../activities/lighting">Activities</a></li>
+          </ul>
+      </nav>
+  </header>
+    <div id="chart-container" style="z-index: -1;"></div>
+    <script>
+      function updateChart() {
+        // Make an AJAX request to the API to retrieve data
+        $.ajax({
+          url: 'http://localhost:4000/scd/devices ',
+          dataType: 'json',
+          success: function(data) {
+            // Process the data into Highcharts-compatible format
+            var seriesData = [];
+            for (var i = 0; i < data.length; i++) {
+              seriesData.push([Date.parse(data[i].timestamp), data[i].value]);
+            }
+
+            // Define the chart configuration object using the processed data
+            var chartConfig = {
+              chart: {
+                type: 'line'
+              },
+              title: {
+                text: 'Sensor Data'
+              },
+              xAxis: {
+                type: 'datetime',
+                title: {
+                  text: 'Timestamp'
+                }
+              },
+              yAxis: {
+                min: 0,
+                max: 1,
+                tickInterval: 1,
+                title: {
+                  text: 'Values'
+                }
+              },
+              series: [{
+                name: 'API Data',
+                data: seriesData
+              }]
+            };
+
+            // Create or update the chart using the chart configuration object
+            var chart = Highcharts.chart('chart-container', chartConfig);
+          }
+        });
+      }
+
+      setInterval(updateChart, 5000);
+    </script>
+  </body>
+  <footer>
+    <p>Samarth &copy; Smart Building. All rights reserved.</p>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.js" integrity="sha256-a9jBBRygX1Bh5lt8GZjXDzyOB+bWve9EiO7tROUtj/E=" crossorigin="anonymous"></script>
+<script>
+  $(document).ready(function () {
+      $('.menu-icon').click(function () {
+          $('.left-nav').animate({ width: 'toggle' }, 200);
+      });
+  });
+</script>
+</html>
